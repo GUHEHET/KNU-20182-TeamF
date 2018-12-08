@@ -8,6 +8,7 @@
 #include <aio.h>
 #include <termios.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #define gotoxy(x, y) wmove(stdscr, y-1, x-1)
 #define BLANK    "                                                     "
@@ -17,27 +18,32 @@
 typedef struct song {
     char name[20];
     int diff;
+	int delay;
 }song;
 
-struct aiocb kbcbuf;
-
 FMOD_SYSTEM *g_System;
-FMOD_SOUND *g_Sound[2];
+FMOD_SOUND *g_Sound[4];
 FMOD_CHANNEL *g_Channel[2];
 FMOD_BOOL IsPlaying;
 int pos = 0;
+int key = -1;
 int linecount = 0;
 int **notes;
+song list[3];
+int ingame_note[35][4];
 
 void load_note(char*);
 void free_note_arr(int**);
 void titleScreen();
 void playBGM();
-void on_input(int);
+void* on_input(void *);
 void game_screen();
 void select_music();
 void select_screen(int,int,song*);
-int create_note(int [][4]);
+void print_note(int[][4]);
+void draw_notes(int**);
+int set_ticker(int);
+void* on_iput(void *);
 
 void main()
 {
@@ -62,7 +68,7 @@ void titleScreen()
 
 	refresh();
 
-	signal(SIGINT, SIG_IGN);
+	//signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
 
@@ -94,7 +100,7 @@ void titleScreen()
 					break;
 				case 66:
 					gotoxy(68, 25);
-					printw("%c", ' ');
+			usleep(100983);		printw("%c", ' ');
 					gotoxy(68, 26);
 					printw("%c", '>');
 					s = 1;
@@ -107,9 +113,6 @@ void titleScreen()
 		if(c == 10) {
 			clear();
 			if(!s) {
-				//signal(SIGIO, on_input);
-				//setup_aio_buffer();
-				//aio_read(&kbcbuf);
                 select_music();
 			}
 			//FMOD_Channel_Stop(g_Channel[0]);
@@ -120,22 +123,36 @@ void titleScreen()
 	}
 }
 
+void songinit(int index, char* name, int diff, int delay)
+{
+	strcpy(list[index].name, name);
+    list[index].diff = diff;
+    list[index].delay = delay;
+}
+
 void select_music()
 {
-    struct song list[3];
-    int key, sel;
+	pthread_t keythread;
+    int key, sel=0;
+	char somnailPath[100];
     
-    strcpy(list[0].name, "Magnolia");
-    list[0].diff = 2;
-    strcpy(list[1].name, "black_swan");
-    list[1].diff = 7;
-    strcpy(list[2].name, "first_kiss");
-    list[2].diff = 4;
-    
-    while(1)
-    {
-        sel = 0;
+	songinit(0, "Magnolia", 2, 101230);
+	songinit(1, "black_swan", 7, 99600);
+	songinit(2, "first_kiss", 4, 100580);
+
+    FMOD_Channel_Stop(g_Channel[0]);
+    FMOD_Sound_Release(g_Sound[0]);
+    FMOD_Sound_Release(g_Sound[1]);
+    while(1) {	
         select_screen(sel, 3, list);
+		strcpy(somnailPath, "sound/somnail/");
+		strcat(somnailPath, list[pos].name);
+		strcat(somnailPath, "_somnail.mp3");
+		FMOD_Channel_Stop(g_Channel[0]);
+		FMOD_Sound_Release(g_Sound[0]);
+		FMOD_System_CreateSound(g_System, somnailPath, FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
+		FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
+
         if ((key = getchar()) == 27 && (key = getchar()) == 91) {
             if ((key = getchar()) == 67)
                 sel = 1;
@@ -146,17 +163,14 @@ void select_music()
             sel = 0;
             break;
         }
-	else if (key == 'Q') {
-		endwin();
-		exit(1);
+		else if (key == 'Q') {
+			endwin();
+			exit(1);
+		}
 	}
-        
-        move(0,0);
-        refresh();
-        
-        
-    }
+	FMOD_Channel_Stop(g_Channel[0]);
     load_note(list[pos].name);
+	pthread_create(&keythread, NULL, on_input, (void *)NULL);
     game_screen();
     
 }
@@ -193,11 +207,11 @@ void select_screen(int sel, int size, song *list)
 
 void playBGM()
 {
-	FMOD_System_Create(&g_System);
-	FMOD_System_Init(g_System, 2, FMOD_INIT_NORMAL, NULL);
+    FMOD_System_Create(&g_System);
+    FMOD_System_Init(g_System, 4, FMOD_INIT_NORMAL, NULL);
     FMOD_System_CreateSound(g_System, "sound/bgm/Menu_sound.mp3",
 			FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
-	FMOD_System_CreateSound(g_System, "sound/effect/Menu_select.wav",
+    FMOD_System_CreateSound(g_System, "sound/effect/Menu_select.wav",
 			FMOD_LOOP_OFF, 0, &g_Sound[1]);
     FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
 }
@@ -255,11 +269,8 @@ void load_note(char *fname)
 	i++;
     }
     fclose(fp);
-    for (i=0; i<linecount; i++)
-	printf("%d %d %d %d\n", notes[i][0], notes[i][1], notes[i][2], notes[i][3]);
 
-
-    free_note_arr(notes);
+    //free_note_arr(notes);
 }
 
 void free_note_arr(int** notes)
@@ -288,59 +299,145 @@ void game_screen()
 	addstr("┃        │        │        │        ┃\n");
 	move(34, 20);
 	addstr("┗━━━━━━━━┷━━━━━━━━┷━━━━━━━━┷━━━━━━━━┛\n");
+	move(35, 20);
+	addstr("     D        F        J        K    \n");
+
 	refresh();
-	getch();
+	draw_notes(notes);
 }
 
-int create_note(int note[][4])
+void draw_notes(int** notes)
 {
-	FILE *fp;
-	int buf, size;
-	int temp, i = 0, j = 0;
+    int i = 0, ingame_index = 0;
+    char songPath[100];
 
-	fp = fopen("song1.txt", "r");
+    for (i=0; i<35; i++)
+    {
+        for (int j=0; j<4; j++)
+        {
+            ingame_note[i][j] = 0;
+        }
+    }
+    
+    //initscr();
+    //clear();
+    
+    i = 0;
+    ingame_index = 0;
 
-	fseek(fp, 0, SEEK_END);
-	size = ftell(fp) / 5;
+	strcpy(songPath, "sound/song/");
+    strcat(songPath, list[pos].name);
+    strcat(songPath, ".mp3");
+	move(50, 50);
+	printw("%s", songPath);
 
-	fseek(fp, 0, SEEK_SET);
-	
-	for (i = 0; i < size; i++) {
-		for (j = 0; j < 4; j++) {
-			temp = fgetc(fp) - '0';
-			note[i][j] = temp;
-		}
-		fgetc(fp);
-	}
-	fclose(fp);
-	return size;
+    FMOD_Channel_Stop(g_Channel[0]);
+    FMOD_Sound_Release(g_Sound[0]);
+    FMOD_System_CreateSound(g_System, songPath, FMOD_LOOP_OFF, 0, &g_Sound[0]);
+   
+    for (i=0; i<linecount; i++)
+    {
+        //reload note
+		if(i == 31)
+            FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
+        for (int k=33; k>=0; k--)
+        {
+            for (int l=0; l<4; l++)
+                ingame_note[k+1][l] = ingame_note[k][l];
+        }
+        
+        for (int j=0; j<4; j++)
+            ingame_note[0][j] = notes[i][j];
+        
+        print_note(ingame_note);
+        usleep(list[pos].delay);
+    }
 }
 
-void on_input(int signum) {
-	int c;
-	char *cp = (char*)kbcbuf.aio_buf;
+void print_note(int note[][4])
+{
+    for (int i=0; i<34; i++)
+    {
+        move(i+1, 21);
+        if (note[i][0] == 1) printw("● ● ● ● ");
+		else if(i == 31)
+			addstr("────────");
+		else if(i == 33)
+			addstr("━━━━━━━━");
+        else addstr("        ");
+        
+        move(i+1, 30);
+        if (note[i][1] == 1) printw("● ● ● ● ");
+		else if(i == 31)
+            addstr("────────");
+        else if(i == 33)
+            addstr("━━━━━━━━");
+        else addstr("        ");
+        
+        move(i+1, 39);
+        if (note[i][2] == 1) printw("● ● ● ● ");
+		else if(i == 31)
+            addstr("────────");
+        else if(i == 33)
+            addstr("━━━━━━━━");
+        else addstr("        ");
+        
+        move(i+1, 48);
+        if (note[i][3] == 1) printw("● ● ● ● ");
+		else if(i == 31)
+            addstr("────────");
+        else if(i == 33)
+            addstr("━━━━━━━━");
+        else addstr("        "); 
+    }
+    move(0,0);
+    refresh();
+    
+}
 
-	if(aio_error(&kbcbuf) != 0)
-		perror("reading failed");
-	else
-		if(aio_return(&kbcbuf) == 1) {
-			c = *cp;
-			if(c == 'Q') {
-				endwin();
-				exit(1);
+void *on_input(void *a) {
+	char c;
+	
+	while(1)
+	{
+		c = getch();
+		if (c == 'd' || c == 'D')
+		{
+			for(int i = 32; i >=29; i--) {
+				if(ingame_note[i][0] == 1) {
+					ingame_note[i][0] = 0;
+					break;
+				}
 			}
 		}
-	aio_read(&kbcbuf);
-}
-
-void setup_aio_buffer() {
-	static char input[1];
-
-	kbcbuf.aio_fildes = 0;
-	kbcbuf.aio_buf = input;
-	kbcbuf.aio_nbytes = 1;
-	kbcbuf.aio_offset = 0;
-
-	kbcbuf.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
-	kbcbuf.aio_sigevent.sigev_signo = SIGIO;
+		else if (c == 'f' || c == 'F') {
+		    for(int i = 32; i >=29; i--) {
+				if(ingame_note[i][1] == 1) {
+					ingame_note[i][1] = 0;
+					break;
+				}
+			}
+		}
+		else if (c == 'j' || c == 'J') {
+		    for(int i = 32; i >=29; i--) {
+				if(ingame_note[i][2] == 1) {
+					ingame_note[i][2] = 0;
+					break;
+				}
+			}
+		}
+		else if (c == 'k' || c == 'K') {
+		    for(int i = 32; i >=29; i--) {
+				if(ingame_note[i][3] == 1) {
+					ingame_note[i][3] = 0;
+					break;
+				}
+			}
+		}
+		else if (c == 'q' || c == 'Q')
+		{
+			endwin();
+			exit(0);
+		}
+	}
 }
