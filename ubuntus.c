@@ -20,6 +20,8 @@ FMOD_SYSTEM *g_System;
 FMOD_SOUND *g_Sound[2];
 FMOD_CHANNEL *g_Channel[2];
 FMOD_BOOL IsPlaying;
+int pos = 0;
+
 
 void titleScreen();
 void playBGM();
