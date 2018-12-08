@@ -5,6 +5,9 @@
 #include <ncursesw/curses.h>
 #include <locale.h>
 #include <signal.h>
+#include <aio.h>
+#include <termios.h>
+#include <unistd.h>
 
 #define gotoxy(x, y) wmove(stdscr, y-1, x-1)
 #define BLANK    "                                                     "
@@ -16,6 +19,8 @@ typedef struct song {
     int diff;
 }song;
 
+struct aiocb kbcbuf;
+
 FMOD_SYSTEM *g_System;
 FMOD_SOUND *g_Sound[2];
 FMOD_CHANNEL *g_Channel[2];
@@ -25,6 +30,7 @@ int pos = 0;
 
 void titleScreen();
 void playBGM();
+void on_input(int);
 
 void main()
 {
@@ -44,14 +50,19 @@ void titleScreen()
 	playBGM();
 	initscr();
 	noecho();
+	clear();
 	crmode();
 
 	refresh();
 
+	signal(SIGINT, SIG_IGN);
+	signal(SIGQUIT, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
+
 	gotoxy(69, 10);
-	printw("%s", "UBUNTUS_PROJECT");
+	printw("%s", "UBUNJAM_PROJECT");
 	gotoxy(69, 11);
-	printw("%s", "Ver. 0.0.1");
+	printw("%s", "Ver. 0.0.2");
 
 	gotoxy(68, 25);
 	printw("%s", ">1. Start");
@@ -87,13 +98,16 @@ void titleScreen()
 		gotoxy(1, 1);
 		refresh();
 		if(c == 10) {
-			system("clear");
+			clear();
 			if(!s) {
+				//signal(SIGIO, on_input);
+				//setup_aio_buffer();
+				//aio_read(&kbcbuf);
                 select_music();
 			}
-			FMOD_Channel_Stop(g_Channel[0]);
-			FMOD_Sound_Release(g_Sound[0]);
-			FMOD_Sound_Release(g_Sound[1]);
+			//FMOD_Channel_Stop(g_Channel[0]);
+			//FMOD_Sound_Release(g_Sound[0]);
+			//FMOD_Sound_Release(g_Sound[1]);
 			break;
 		}
 	}
@@ -116,9 +130,6 @@ void select_music()
     strcpy(list[2].name, "song3");
     list[2].diff = 4;
     
-    initscr();
-    crmode();
-    noecho();
     clear();
     
     select_screen(sel, 2, list);
@@ -132,20 +143,23 @@ void select_music()
             else if (key == 68)
                 sel = -1;
         }
-        else if (key == 13) {
+        else if ((key == 13) || (key == 10)) {
             sel = 0;
             game_screen();
+			break;
         }
+		else if (key == 'Q') {
+			endwin();
+			exit(1);
+		}
         
         move(0,0);
-        printw("%2d %2d", key, sel);
         refresh();
         
         select_screen(sel, 3, list);
     }
-    endwin();
     
-    size = create_note(note);
+    //size = create_note(note);
 }
 
 void select_screen(int sel, int size, song *list)
@@ -227,4 +241,33 @@ int create_note(int note[][4])
     }
     fclose(fp);
     return size;
+}
+
+void on_input(int signum) {
+	int c;
+	char *cp = (char*)kbcbuf.aio_buf;
+
+	if(aio_error(&kbcbuf) != 0)
+		perror("reading failed");
+	else
+		if(aio_return(&kbcbuf) == 1) {
+			c = *cp;
+			if(c == 'Q') {
+				endwin();
+				exit(1);
+			}
+		}
+	aio_read(&kbcbuf);
+}
+
+void setup_aio_buffer() {
+	static char input[1];
+
+	kbcbuf.aio_fildes = 0;
+	kbcbuf.aio_buf = input;
+	kbcbuf.aio_nbytes = 1;
+	kbcbuf.aio_offset = 0;
+
+	kbcbuf.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
+	kbcbuf.aio_sigevent.sigev_signo = SIGIO;
 }

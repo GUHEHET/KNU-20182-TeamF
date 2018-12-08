@@ -1,3 +1,3 @@
-ubuntus : ubuntus.c
-	cc ubuntus.c -I/usr/local/include -L/usr/local/lib -lfmod -lpthread -lncursesw -o ubuntus
+ubunjam : ubunjam.c
+	cc ubunjam.c -I/usr/local/include -L/usr/local/lib -lrt -lfmod -lpthread -lncursesw -o ubunjam
 
