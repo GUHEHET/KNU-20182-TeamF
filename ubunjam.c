@@ -26,11 +26,18 @@ FMOD_SOUND *g_Sound[2];
 FMOD_CHANNEL *g_Channel[2];
 FMOD_BOOL IsPlaying;
 int pos = 0;
+int linecount = 0;
+int **notes;
 
-
+void load_note(char*);
+void free_note_arr(int**);
 void titleScreen();
 void playBGM();
 void on_input(int);
+void game_screen();
+void select_music();
+void select_screen(int,int,song*);
+int create_note(int [][4]);
 
 void main()
 {
@@ -116,27 +123,19 @@ void titleScreen()
 void select_music()
 {
     struct song list[3];
-    int key, sel = 0;
-    int note[1000][4];
-    int i, j, size;
-    void select_screen(int, int, song *);
-    void game_screen();
-    int create_note(int [][4]);
+    int key, sel;
     
-    strcpy(list[0].name, "song1");
+    strcpy(list[0].name, "Magnolia");
     list[0].diff = 2;
-    strcpy(list[1].name, "song2");
+    strcpy(list[1].name, "black_swan");
     list[1].diff = 7;
-    strcpy(list[2].name, "song3");
+    strcpy(list[2].name, "first_kiss");
     list[2].diff = 4;
-    
-    clear();
-    
-    select_screen(sel, 2, list);
     
     while(1)
     {
         sel = 0;
+        select_screen(sel, 3, list);
         if ((key = getchar()) == 27 && (key = getchar()) == 91) {
             if ((key = getchar()) == 67)
                 sel = 1;
@@ -145,21 +144,21 @@ void select_music()
         }
         else if ((key == 13) || (key == 10)) {
             sel = 0;
-            game_screen();
-			break;
+            break;
         }
-		else if (key == 'Q') {
-			endwin();
-			exit(1);
-		}
+	else if (key == 'Q') {
+		endwin();
+		exit(1);
+	}
         
         move(0,0);
         refresh();
         
-        select_screen(sel, 3, list);
+        
     }
+    load_note(list[pos].name);
+    game_screen();
     
-    //size = create_note(note);
 }
 
 void select_screen(int sel, int size, song *list)
@@ -203,44 +202,118 @@ void playBGM()
     FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
 }
 
+void load_note(char *fname)
+{
+    FILE *fp;
+    char temp[BUFSIZ];
+    char path[BUFSIZ];
+    int i = 0;
+    strcpy(path, "notes/");
+    strcat(path, fname);
+    strcat(path, ".txt");
+
+    fp = fopen(path, "r");
+
+    if (!fp)
+    {
+	perror("fopen");
+	exit(1);
+    }
+    
+    while (!feof(fp))
+    {
+	fscanf(fp, "%s", temp);
+	linecount++;
+    }
+
+    fclose(fp);
+
+    notes = (int**)malloc(sizeof(int*) * linecount);
+    for (i=0;  i<linecount; i++)
+	notes[i] = (int*)malloc(sizeof(int) * 4);
+
+    fp = fopen(path, "r");
+
+    if (!fp)
+    {
+	endwin();
+	perror("fopen");
+	exit(1);
+    }
+
+    i = 0;
+
+    while (!feof(fp))
+    {
+	fscanf(fp, "%s", temp);
+
+	notes[i][0] = (int)(temp[0]-48);
+	notes[i][1] = (int)(temp[1]-48);
+	notes[i][2] = (int)(temp[2]-48);
+	notes[i][3] = (int)(temp[3]-48);
+
+	i++;
+    }
+    fclose(fp);
+    for (i=0; i<linecount; i++)
+	printf("%d %d %d %d\n", notes[i][0], notes[i][1], notes[i][2], notes[i][3]);
+
+
+    free_note_arr(notes);
+}
+
+void free_note_arr(int** notes)
+{
+    for (int i=0; i<linecount; i++)
+	free(notes[i]);
+
+    free(notes);
+}
+
 void game_screen()
 {
-    int i;
-    
-    clear();
-    move(1, 20);
-    addstr("==================================\n");
-    
-    for (i = 0; i < 30; i++) {
-        move(i+2, 20);
-        addstr("|       |       ||       |       |\n");
-    }
-    refresh();
-    getch();
+	int i;
+
+	clear();
+	move(1, 20);
+	addstr("┏━━━━━━━━┯━━━━━━━━┯━━━━━━━━┯━━━━━━━━┓\n");
+	
+	for (i = 0; i < 30; i++) {
+		move(i+2, 20);
+		addstr("┃        │        │        │        ┃\n");
+	}
+	move(32, 20);
+	addstr("┠────────┼────────┼────────┼────────┨\n");
+	move(33, 20);
+	addstr("┃        │        │        │        ┃\n");
+	move(34, 20);
+	addstr("┗━━━━━━━━┷━━━━━━━━┷━━━━━━━━┷━━━━━━━━┛\n");
+	refresh();
+	getch();
 }
 
 int create_note(int note[][4])
 {
-    FILE *fp;
-    int buf, size;
-    int temp, i = 0, j = 0;
-    
-    fp = fopen("song1.txt", "r");
-    
-    fseek(fp, 0, SEEK_END);
-    size = ftell(fp) / 5;
-    
-    fseek(fp, 0, SEEK_SET);
-    
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < 4; j++) {
-            temp = fgetc(fp) - '0';
-            note[i][j] = temp;
-        }
-        fgetc(fp);
-    }
-    fclose(fp);
-    return size;
+	FILE *fp;
+	int buf, size;
+	int temp, i = 0, j = 0;
+
+	fp = fopen("song1.txt", "r");
+
+	fseek(fp, 0, SEEK_END);
+	size = ftell(fp) / 5;
+
+	fseek(fp, 0, SEEK_SET);
+	
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < 4; j++) {
+			temp = fgetc(fp) - '0';
+			note[i][j] = temp;
+		}
+		fgetc(fp);
+	}
+	fclose(fp);
+	return size;
 }
 
 void on_input(int signum) {
