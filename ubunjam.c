@@ -510,13 +510,13 @@ void *on_input(void *a) {
 
 void printJudge() {
 	gotoxy(60, 27);
-	printw("Combo : %03d\n", total.combo);
+	printw("Combo : %03d", total.combo);
 	gotoxy(60, 28);
-	printw("Perfect : %03d\n", total.perfect);
+	printw("Perfect : %03d", total.perfect);
 	gotoxy(60, 29);
-	printw("Good : %03d\n", total.good);
+	printw("Good : %03d", total.good);
 	gotoxy(60, 30);
-	printw("Bad : %03d\n", total.bad);
+	printw("Bad : %03d", total.bad);
 	gotoxy(60, 31);
 	printw("Miss : %03d", total.miss);
 	refresh();
