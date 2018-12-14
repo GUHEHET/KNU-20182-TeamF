@@ -5,7 +5,6 @@
 #include <ncurses.h>
 #include <locale.h>
 #include <signal.h>
-#include <aio.h>
 #include <termios.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -40,6 +39,7 @@ int **notes;
 song list[3];
 int ingame_note[35][4];
 judge total;
+int thread_end_flag = 0;
 
 void load_note(char*);
 void free_note_arr(int**);
@@ -53,10 +53,17 @@ void print_note(int[][4]);
 void draw_notes(int**);
 int set_ticker(int);
 void printJudge();
+void resultScreen();
+void songinit(int, char*, int, int);
 
 int main()
 {
 	setlocale(LC_CTYPE, "ko_KR.utf-8");
+    
+    songinit(0, "Magnolia", 2, 90000);
+    songinit(1, "black_swan", 7, 90000);
+    songinit(2, "first_kiss", 4, 100580);
+    
 	titleScreen();
 	endwin();
 
@@ -119,14 +126,18 @@ void titleScreen()
 		gotoxy(1, 1);
 		refresh();
 		if(c == 10) {
-			clear();
-			if(!s) {
-                select_music();
-			}
-			//FMOD_Channel_Stop(g_Channel[0]);
-			//FMOD_Sound_Release(g_Sound[0]);
-			//FMOD_Sound_Release(g_Sound[1]);
-			break;
+		    clear();
+		    if(!s)
+            {
+                while (1)
+                {
+                    select_music();
+                }
+            }
+		    //FMOD_Channel_Stop(g_Channel[0]);
+		    //FMOD_Sound_Release(g_Sound[0]);
+		    //FMOD_Sound_Release(g_Sound[1]);
+		    break;
 		}
 	}
 }
@@ -144,21 +155,23 @@ void select_music()
     int key, sel=0;
 	char somnailPath[100];
 
+    pos = 0;
 	total.perfect = 0;
 	total.good = 0;
 	total.bad = 0;
 	total.miss = 0;
     total.combo = 0;
 
-	songinit(0, "Magnolia", 2, 101230);
-	songinit(1, "black_swan", 7, 99600);
-	songinit(2, "first_kiss", 4, 100580);
-
     FMOD_Channel_Stop(g_Channel[0]);
     FMOD_Sound_Release(g_Sound[0]);
     FMOD_Sound_Release(g_Sound[1]);
-    while(1) {	
+    
+    while(1) {
         select_screen(sel, 3, list);
+        sel = 0;
+        move(1,1);
+        printw("%d %c", key, key);
+        refresh();
 		strcpy(somnailPath, "sound/somnail/");
 		strcat(somnailPath, list[pos].name);
 		strcat(somnailPath, "_somnail.mp3");
@@ -182,11 +195,14 @@ void select_music()
 			exit(1);
 		}
 	}
-	FMOD_Channel_Stop(g_Channel[0]);
+    FMOD_Channel_Stop(g_Channel[0]);
     load_note(list[pos].name);
-	pthread_create(&keythread, NULL, on_input, (void *)NULL);
+    thread_end_flag = 0;
+    pthread_create(&keythread, NULL, on_input, (void *)NULL);
     game_screen();
-    
+    thread_end_flag = 1;
+    pthread_join(keythread, NULL);
+    return;
 }
 
 void select_screen(int sel, int size, song *list)
@@ -318,13 +334,14 @@ void game_screen()
 	printJudge();
 	refresh();
 	draw_notes(notes);
+    resultScreen();
 }
 
 void draw_notes(int** notes)
 {
     int i = 0, ingame_index = 0;
     char songPath[100];
-
+    
     for (i=0; i<35; i++)
     {
         for (int j=0; j<4; j++)
@@ -414,12 +431,15 @@ void print_note(int note[][4])
     
 }
 
-void *on_input(void *a) {
+void *on_input(void *a)
+{
 	int i;
 	char c;
 	
-	while(1)
-	{
+    while(1)
+    {
+        if (thread_end_flag == 1)
+            return NULL;
 		c = getch();
 		if (c == 'd' || c == 'D')
 		{
@@ -503,20 +523,33 @@ void *on_input(void *a) {
 				break;
 		}
 		printJudge();
-		//refresh();
 	}
 }
 
 void printJudge() {
 	gotoxy(60, 27);
 	printw("Combo : %03d", total.combo);
-	gotoxy(60, 28);
-	printw("Perfect : %03d", total.perfect);
-	gotoxy(60, 29);
-	printw("Good : %03d", total.good);
-	gotoxy(60, 30);
-	printw("Bad : %03d", total.bad);
-	gotoxy(60, 31);
-	printw("Miss : %03d", total.miss);
-	refresh();
+    refresh();
+}
+
+void resultScreen() {
+    char c;
+    
+    clear();
+    gotoxy(30, 20);
+    printf("RESULT");
+    gotoxy(30, 26);
+    printw("Combo : %03d", total.combo);
+    gotoxy(30, 28);
+    printw("Perfect : %03d", total.perfect);
+    gotoxy(30, 30);
+    printw("Good : %03d", total.good);
+    gotoxy(30, 30);
+    printw("Bad : %03d", total.bad);
+    gotoxy(30, 32);
+    printw("Miss : %03d", total.miss);
+    gotoxy(30, 38);
+    printw("PRESS ENTER");
+    
+    refresh();
 }
