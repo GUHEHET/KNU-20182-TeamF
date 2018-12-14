@@ -25,6 +25,7 @@ typedef struct judge {
     int good;
     int bad;
     int miss;
+	int maxcombo;
     int combo;
 } judge;
 
@@ -51,8 +52,6 @@ void select_music();
 void select_screen(int,int,song*);
 void print_note(int[][4]);
 void draw_notes(int**);
-int set_ticker(int);
-void printJudge();
 void resultScreen();
 void songinit(int, char*, int, int);
 
@@ -60,7 +59,7 @@ int main()
 {
     setlocale(LC_CTYPE, "ko_KR.utf-8");
     
-    songinit(0, "Magnolia", 2, 90000);
+    songinit(0, "Magnolia", 2, 1);
     songinit(1, "black_swan", 7, 90000);
     songinit(2, "first_kiss", 4, 100580);
     
@@ -134,9 +133,6 @@ void titleScreen()
                     select_music();
                 }
             }
-            //FMOD_Channel_Stop(g_Channel[0]);
-            //FMOD_Sound_Release(g_Sound[0]);
-            //FMOD_Sound_Release(g_Sound[1]);
             break;
         }
     }
@@ -160,6 +156,7 @@ void select_music()
     total.good = 0;
     total.bad = 0;
     total.miss = 0;
+	total.maxcombo = 0;
     total.combo = 0;
     
     FMOD_Channel_Stop(g_Channel[0]);
@@ -175,7 +172,8 @@ void select_music()
         strcpy(somnailPath, "sound/somnail/");
         strcat(somnailPath, list[pos].name);
         strcat(somnailPath, "_somnail.mp3");
-        FMOD_Channel_Stop(g_Channel[0]);
+        refresh();
+		FMOD_Channel_Stop(g_Channel[0]);
         FMOD_Sound_Release(g_Sound[0]);
         FMOD_System_CreateSound(g_System, somnailPath, FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
         FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
@@ -331,7 +329,8 @@ void game_screen()
     addstr("┗━━━━━━━━┷━━━━━━━━┷━━━━━━━━┷━━━━━━━━┛\n");
     move(35, 20);
     addstr("     D        F        J        K    \n");
-    printJudge();
+	gotoxy(60, 27);
+    printw("Combo : %03d", total.combo);
     refresh();
     draw_notes(notes);
     resultScreen();
@@ -381,8 +380,12 @@ void draw_notes(int** notes)
             gotoxy(60, 20);
             printw("Miss");
             total.miss++;
+			if(total.combo > total.maxcombo)
+				total.maxcombo = total.combo;
             total.combo = 0;
-            printJudge();
+            gotoxy(68, 27);
+			printw("%03d", total.combo);
+            refresh();
         }
         
         print_note(ingame_note);
@@ -396,15 +399,15 @@ void print_note(int note[][4])
     {
         move(i+1, 21);
         if (note[i][0] == 1) printw("● ● ● ● ");
-        else if(i == 31)
-            addstr("────────");
-        else if(i == 33)
-            addstr("━━━━━━━━");
+		else if(i == 31)
+			addstr("────────");
+		else if(i == 33)
+			addstr("━━━━━━━━");
         else addstr("        ");
         
         move(i+1, 30);
         if (note[i][1] == 1) printw("● ● ● ● ");
-        else if(i == 31)
+		else if(i == 31)
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
@@ -412,7 +415,7 @@ void print_note(int note[][4])
         
         move(i+1, 39);
         if (note[i][2] == 1) printw("● ● ● ● ");
-        else if(i == 31)
+		else if(i == 31)
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
@@ -420,12 +423,13 @@ void print_note(int note[][4])
         
         move(i+1, 48);
         if (note[i][3] == 1) printw("● ● ● ● ");
-        else if(i == 31)
+		else if(i == 31)
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
-        else addstr("        ");
+        else addstr("        "); 
     }
+
     move(0,0);
     refresh();
     
@@ -484,11 +488,6 @@ void *on_input(void *a)
         printw("        ");
         gotoxy(60, 20);
         switch(i-31) {
-            case -3:
-                printw("Miss");
-                total.miss++;
-                total.combo = 0;
-                break;
             case -2:
                 printw("Bad");
                 total.bad++;
@@ -514,22 +513,11 @@ void *on_input(void *a)
                 total.bad++;
                 total.combo++;
                 break;
-            case 3:
-                printw("Miss");
-                total.miss++;
-                total.combo = 0;
-                break;
-            default:
-                break;
         }
-        printJudge();
+        gotoxy(68, 27);
+		printw("%03d", total.combo);
+		refresh();
     }
-}
-
-void printJudge() {
-    gotoxy(60, 27);
-    printw("Combo : %03d", total.combo);
-    refresh();
 }
 
 void resultScreen() {
@@ -539,14 +527,14 @@ void resultScreen() {
     gotoxy(30, 20);
     printf("RESULT");
     gotoxy(30, 26);
-    printw("Combo : %03d", total.combo);
+    printw("Combo : %03d", total.maxcombo);
     gotoxy(30, 28);
     printw("Perfect : %03d", total.perfect);
     gotoxy(30, 30);
     printw("Good : %03d", total.good);
-    gotoxy(30, 30);
-    printw("Bad : %03d", total.bad);
     gotoxy(30, 32);
+    printw("Bad : %03d", total.bad);
+    gotoxy(30, 34);
     printw("Miss : %03d", total.miss);
     gotoxy(30, 38);
     printw("PRESS ENTER");

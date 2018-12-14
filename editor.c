@@ -11,9 +11,9 @@
 
 #define gotoxy(x, y) wmove(stdscr, y-1, x-1)
 
-#define SONG	"Predawn"
-#define DELAY	55000
-#define SIZE	5000
+#define SONG	"Dream"
+#define DELAY	30000
+#define SIZE	8000
 
 typedef struct song {
     char name[20];
