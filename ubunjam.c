@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fmod.h>
-#include <ncursesw/curses.h>
+#include <ncurses.h>
 #include <locale.h>
 #include <signal.h>
 #include <aio.h>
@@ -54,14 +54,13 @@ void draw_notes(int**);
 int set_ticker(int);
 void printJudge();
 
-void main()
+int main()
 {
 	setlocale(LC_CTYPE, "ko_KR.utf-8");
-	puts("실행에 필요한 프로그램을 설치합니다...");
-	system("sudo apt-get -y install xterm");
-	system("resize -s 40 160");
 	titleScreen();
 	endwin();
+
+	return 0;
 }
 
 void titleScreen()
