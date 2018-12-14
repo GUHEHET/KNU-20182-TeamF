@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fmod.h>
-#include <ncursesw/curses.h>
+#include <ncurses.h>
 #include <locale.h>
 #include <signal.h>
+#include <aio.h>
 #include <termios.h>
 #include <unistd.h>
 #include <pthread.h>
