@@ -403,7 +403,7 @@ void print_note(int note[][4])
 			addstr("────────");
 		else if(i == 33)
 			addstr("━━━━━━━━");
-        else addstr("        ");
+        else addstr("　　　　");
         
         move(i+1, 30);
         if (note[i][1] == 1) printw("● ● ● ● ");
@@ -411,7 +411,7 @@ void print_note(int note[][4])
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
-        else addstr("        ");
+        else addstr("　　　　");
         
         move(i+1, 39);
         if (note[i][2] == 1) printw("● ● ● ● ");
@@ -419,7 +419,7 @@ void print_note(int note[][4])
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
-        else addstr("        ");
+        else addstr("　　　　");
         
         move(i+1, 48);
         if (note[i][3] == 1) printw("● ● ● ● ");
@@ -427,7 +427,7 @@ void print_note(int note[][4])
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
-        else addstr("        "); 
+        else addstr("　　　　"); 
     }
 
     move(0,0);
