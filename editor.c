@@ -13,6 +13,7 @@
 
 #define SONG	"Predawn"
 #define DELAY	55000
+#define SIZE	5000
 
 typedef struct song {
     char name[20];
@@ -24,7 +25,7 @@ FMOD_SYSTEM *g_System;
 FMOD_SOUND *g_Sound[4];
 FMOD_CHANNEL *g_Channel[2];
 FMOD_BOOL IsPlaying;
-int notes[3000][4];
+int notes[SIZE][4];
 int i = 0, done = 0;
 
 void save_note();
@@ -58,7 +59,7 @@ void save_note()
 
 	fp = fopen(name, "w");
 
-	for (i = 0; i < 3000; i++)
+	for (i = 0; i < SIZE; i++)
 		fprintf(fp, "%d%d%d%d\n", notes[i][0], notes[i][1], notes[i][2], notes[i][3]);
 
 	fclose(fp);
@@ -102,7 +103,7 @@ void game_screen()
 	FMOD_System_CreateSound(g_System, songpath, FMOD_LOOP_OFF, 0, &g_Sound[0]);
 	FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
 
-	for (i = 0; i < 3000; i++)
+	for (i = 0; i < SIZE; i++)
 	{
 		if (done == 1)
 			break;
