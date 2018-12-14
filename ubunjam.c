@@ -151,7 +151,8 @@ void select_music()
 
 	songinit(0, "Magnolia", 2, 101230);
 	songinit(1, "black_swan", 7, 99600);
-	songinit(2, "first_kiss", 4, 100580);
+	//songinit(2, "first_kiss", 4, 100580);
+	songinit(2, "Predawn", 5, 54300);
 
     FMOD_Channel_Stop(g_Channel[0]);
     FMOD_Sound_Release(g_Sound[0]);
@@ -314,7 +315,7 @@ void game_screen()
 	addstr("┗━━━━━━━━┷━━━━━━━━┷━━━━━━━━┷━━━━━━━━┛\n");
 	move(35, 20);
 	addstr("     D        F        J        K    \n");
-	printJudge();
+	//printJudge();
 	refresh();
 	draw_notes(notes);
 }
@@ -364,7 +365,7 @@ void draw_notes(int** notes)
 			printw("Miss");
 			total.miss++;
 			total.combo = 0;
-			printJudge();
+			//printJudge();
 		}
         
         print_note(ingame_note);
@@ -409,8 +410,7 @@ void print_note(int note[][4])
         else addstr("        "); 
     }
     move(0,0);
-    refresh();
-    
+    refresh(); 
 }
 
 void *on_input(void *a) {
@@ -501,8 +501,8 @@ void *on_input(void *a) {
 			default:
 				break;
 		}
-		printJudge();
-		//refresh();
+		//printJudge();
+		refresh();
 	}
 }
 
