@@ -64,7 +64,8 @@ int main()
 {
 	winsize();
 
-	setlocale(LC_CTYPE, "ko_KR.utf-8");
+	setlocale(LC_ALL, "ko_KR.utf8");
+	setlocale(LC_CTYPE, "ko_KR.utf8");
 //	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
@@ -73,7 +74,7 @@ int main()
 	noecho();
 	crmode();
 
-    songinit(0, "Magnolia", 2, 1);
+    songinit(0, "spread_clever", 2, 29190);
     songinit(1, "black_swan", 7, 90000);
     songinit(2, "first_kiss", 4, 100580);
 
@@ -190,7 +191,7 @@ void select_music()
 {
     pthread_t keythread, soundbar;
     int key, sel=0;
-    char somnailPath[100];
+    char thumbnailPath[100];
     
     pos = 0;
 	done = 0;
@@ -204,14 +205,14 @@ void select_music()
 
 	pthread_create(&soundbar, NULL, printbar, (void *)NULL);
 
-    strcpy(somnailPath, "sound/somnail/");
-    strcat(somnailPath, list[pos].name);
-    strcat(somnailPath, "_somnail.mp3");
+    strcpy(thumbnailPath, "sound/thumbnail/");
+    strcat(thumbnailPath, list[pos].name);
+    strcat(thumbnailPath, "_thumbnail.mp3");
     
     FMOD_Channel_Stop(g_Channel[0]);
     FMOD_Sound_Release(g_Sound[0]);
     FMOD_Sound_Release(g_Sound[1]);
-    FMOD_System_CreateSound(g_System, somnailPath, FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
+    FMOD_System_CreateSound(g_System, thumbnailPath, FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
     FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
 
 	select_screen(sel, 3, list);
@@ -226,14 +227,14 @@ void select_music()
             else if (key == 68)
                 sel = -1;
 			select_screen(sel, 3, list);
-			strcpy(somnailPath, "sound/somnail/");
-        	strcat(somnailPath, list[pos].name);
-        	strcat(somnailPath, "_somnail.mp3");
+			strcpy(thumbnailPath, "sound/thumbnail/");
+        	strcat(thumbnailPath, list[pos].name);
+        	strcat(thumbnailPath, "_thumbnail.mp3");
 			if (sel != 0)
 			{
 				FMOD_Channel_Stop(g_Channel[0]);
 				FMOD_Sound_Release(g_Sound[0]);
-				FMOD_System_CreateSound(g_System, somnailPath, FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
+				FMOD_System_CreateSound(g_System, thumbnailPath, FMOD_LOOP_NORMAL, 0, &g_Sound[0]);
 				FMOD_System_PlaySound(g_System, g_Sound[0], 0, 0, &g_Channel[0]);
 			}
         }
@@ -339,7 +340,7 @@ void *printbar(void *a)
         move(21, 0);
         printw("■ ■ ■ ■ ■ 　");
 
-                move(18, 108);
+        move(18, 108);
 		printw("■ ■ ■ ■ ■ ■ ");
 		move(19, 108);
 		printw("　　　　■ ■ ");
@@ -359,7 +360,7 @@ void *printbar(void *a)
         move(21, 0);
         printw("■ ■ ■ ■ ■ ■ ");
 
-                move(18, 108);
+        move(18, 108);
 		printw("　■ ■ ■ ■ ■ ");
 		move(19, 108);
 		printw("　　　■ ■ ■ ");
@@ -379,7 +380,7 @@ void *printbar(void *a)
         move(21, 0);
         printw("■ ■ ■ ■ ■ 　");
 
-                move(18, 108);
+        move(18, 108);
 		printw("　　■ ■ ■ ■ ");
 		move(19, 108);
 		printw("　　■ ■ ■ ■ ");
@@ -399,7 +400,7 @@ void *printbar(void *a)
         move(21, 0);
         printw("■ ■ ■ ■ 　　");
 
-                move(18, 108);
+        move(18, 108);
 		printw("　　　■ ■ ■ ");
 		move(19, 108);
 		printw("　■ ■ ■ ■ ■ ");
@@ -419,7 +420,7 @@ void *printbar(void *a)
         move(21, 0);
         printw("■ ■ ■ 　　　");
 
-                move(18, 108);
+        move(18, 108);
 		printw("　　　　■ ■ ");
 		move(19, 108);
 		printw("■ ■ ■ ■ ■ ■ ");
@@ -439,7 +440,7 @@ void *printbar(void *a)
         move(21, 0);
         printw("■ ■ 　　　　");
 
-                move(18, 108);
+        move(18, 108);
 		printw("　　　■ ■ ■ ");
 		move(19, 108);
 		printw("　■ ■ ■ ■ ■ ");
@@ -617,9 +618,7 @@ void draw_notes(int** notes)
         
         if(ingame_note[34][0] == 1 || ingame_note[34][1] == 1 || ingame_note[34][2] == 1 || ingame_note[34][3]) {
             gotoxy(60, 20);
-            printw("        ");
-            gotoxy(60, 20);
-            printw("Miss");
+            printw("Miss    ");
             total.miss++;
 			if(total.combo > total.maxcombo)
 				total.maxcombo = total.combo;
@@ -682,7 +681,7 @@ void *on_input(void *a)
     int i;
     char c;
     
-    while(1)
+	while(1)
     {
         if (thread_end_flag == 1)
             return NULL;
@@ -724,16 +723,14 @@ void *on_input(void *a)
             done = 1;
         
         gotoxy(60, 20);
-        printw("        ");
-        gotoxy(60, 20);
         switch(i-31) {
             case -2:
-                printw("Bad");
+                printw("Bad     ");
                 total.bad++;
                 total.combo++;
                 break;
             case -1:
-                printw("Good");
+                printw("Good    ");
                 total.good++;
                 total.combo++;
                 break;
@@ -743,12 +740,12 @@ void *on_input(void *a)
                 total.combo++;
                 break;
             case 1:
-                printw("Good");
+                printw("Good    ");
                 total.good++;
                 total.combo++;
                 break;
             case 2:
-                printw("Bad");
+                printw("Bad     ");
                 total.bad++;
                 total.combo++;
                 break;
