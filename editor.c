@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fmod.h>
-#include <ncursesw/curses.h>
+#include <ncurses.h>
 #include <locale.h>
 #include <signal.h>
 #include <termios.h>
@@ -11,9 +11,9 @@
 
 #define gotoxy(x, y) wmove(stdscr, y-1, x-1)
 
-#define SONG	"spread_clever"
+#define SONG	"toy_war"
 #define DELAY	30000
-#define SIZE	10000
+#define SIZE	5000
 
 typedef struct song {
     char name[20];

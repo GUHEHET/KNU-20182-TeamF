@@ -77,7 +77,7 @@ int main()
 
     songinit(0, "spread_clever", 2, 29190);
     songinit(1, "Predawn", 5, 29140);
-    songinit(2, "first_kiss", 4, 100580);
+    songinit(2, "toy_war", 4, 29315);
 
     while (!quit)
 		titleScreen();
