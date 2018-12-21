@@ -306,7 +306,7 @@ void select_screen(int sel, int size, song *list)
     addstr(buf);
 	
 	gotoxy(65, 39);
-    addstr("Q키를 누르면 게임을 중단하고 곡 선택으로 돌아갑니다.");
+    addstr("Q키를 누르면 타이틀 화면으로 돌아갑니다.");
 
     move(0, 0);
     refresh();
@@ -654,8 +654,8 @@ void print_note(int note[][4])
 			addstr("Bad     ");
 		else if(total.prev == 4)
 			addstr("Miss    ");
-		gotoxy(68, 27);
-        printw("%03d", total.combo);
+		gotoxy(60, 27);
+        printw("Combo : %03d", total.combo);
 		
 		move(i+1, 21);
         if (note[i][0] == 1) addstr(" ■■■■■ ");
@@ -689,7 +689,6 @@ void print_note(int note[][4])
             addstr("━━━━━━━━");
         else addstr(" 　　　 "); 
     }
-
     move(0,0);
     refresh();
 }
