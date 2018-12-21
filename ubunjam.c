@@ -27,6 +27,7 @@ typedef struct judge {
     int miss;
 	int maxcombo;
     int combo;
+	int prev;
 } judge;
 
 FMOD_SYSTEM *g_System;
@@ -66,7 +67,7 @@ int main()
 
 	setlocale(LC_ALL, "ko_KR.utf8");
 	setlocale(LC_CTYPE, "ko_KR.utf8");
-//	signal(SIGINT, SIG_IGN);
+	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGTSTP, SIG_IGN);
 
@@ -116,21 +117,21 @@ void titleScreen()
 	clear();
 	playBGM();
 	move(8, 26);
-	printw("###     ###                    ###");
+	addstr("###     ###                    ###");
 	move(9, 26);
-	printw("###     ###  #                  ###        #######  #####     #####");
+	addstr("###     ###  #                  ###        #######  #####     #####");
 	move(10, 26);
-	printw("###     ###  #                   ###      ###  ###  ### ##   ## ###");
+	addstr("###     ###  #                   ###      ###  ###  ### ##   ## ###");
 	move(11, 26);
-	printw("###     ###  ###  #  # ###        ###    ###   ###  ###  ## ##  ###");
+	addstr("###     ###  ###  #  # ###        ###    ###   ###  ###  ## ##  ###");
 	move(12, 26);
-	printw("###     ###  #  # #  # #  # ###    ###  ##########  ###   ###   ###");
+	addstr("###     ###  #  # #  # #  # ###    ###  ##########  ###   ###   ###");
 	move(13, 26);
-	printw(" #########   #  # #  # #  #  ###  ###  ###     ###  ###         ###");
+	addstr(" #########   #  # #  # #  #  ###  ###  ###     ###  ###         ###");
 	move(14, 26);
-	printw("   #####     ###   ##  #  #    ####   ###      ###  ###         ###");
+	addstr("   #####     ###   ##  #  #    ####   ###      ###  ###         ###");
 	gotoxy(80, 39);
-	printw("본 게임은 120x40에 최적화되어 있습니다.");
+	addstr("본 게임은 120x40에 최적화되어 있습니다.");
     
 	gotoxy(52, 25);
     printw("%s", "▷  1. Start");
@@ -148,16 +149,16 @@ void titleScreen()
            	switch(c) {
                	case 65:
                    	gotoxy(52, 25);
-                   	printw("▷ ");
+                   	addstr("▷ ");
                    	gotoxy(52, 26);
-                   	printw("　");
+                   	addstr("　");
                    	quit = 0;
                    	break;
                	case 66:
                    	gotoxy(52, 26);
-					printw("▷ ");
+					addstr("▷ ");
                    	gotoxy(52, 25);
-                   	printw("　");
+                   	addstr("　");
                    	quit = 1;
                    	break;
            	}
@@ -201,6 +202,7 @@ void select_music()
     total.miss = 0;
 	total.maxcombo = 0;
     total.combo = 0;
+	total.prev = 0;
 	thread_end_flag = 0;
 
 	pthread_create(&soundbar, NULL, printbar, (void *)NULL);
@@ -274,15 +276,15 @@ void select_screen(int sel, int size, song *list)
     
     clear();
 	gotoxy(22, 5);
-	printw(" ####  #####  #      #####   ####  #####    #   #  #   #   ####  ###   ####");
+	addstr(" ####  #####  #      #####   ####  #####    #   #  #   #   ####  ###   ####");
 	gotoxy(22, 6);
-	printw("#      #      #      #      #        #      ## ##  #   #  #       #   #");
+	addstr("#      #      #      #      #        #      ## ##  #   #  #       #   #");
 	gotoxy(22, 7);
-	printw(" ###   #####  #      #####  #        #      # # #  #   #   ###    #   #");
+	addstr(" ###   #####  #      #####  #        #      # # #  #   #   ###    #   #");
 	gotoxy(22, 8);
-	printw("    #  #      #      #      #        #      #   #  #   #      #   #   #");
+	addstr("    #  #      #      #      #        #      #   #  #   #      #   #   #");
 	gotoxy(22, 9);
-	printw("####   #####  #####  #####   ####    #      #   #   ###   ####   ###   ####");
+	addstr("####   #####  #####  #####   ####    #      #   #   ###   ####   ###   ####");
     gotoxy(50, 19);
     addstr(BLANK);
     strcpy (buf, NAME);
@@ -302,6 +304,10 @@ void select_screen(int sel, int size, song *list)
 	}
     gotoxy(50, 22);
     addstr(buf);
+	
+	gotoxy(65, 39);
+    addstr("Q키를 누르면 게임을 중단하고 곡 선택으로 돌아갑니다.");
+
     move(0, 0);
     refresh();
     
@@ -311,163 +317,163 @@ void *printbar(void *a)
 {
 	while(!thread_end_flag) {
 		move(18, 0);
-		printw("■ ■ ■ ■ ■ 　");
+		addstr("■ ■ ■ ■ ■ 　");
 		move(19, 0);
-		printw("■ ■ ■ 　　　");
+		addstr("■ ■ ■ 　　　");
 		move(20, 0);
-		printw("■ ■ ■ ■ ■ ■ ");
+		addstr("■ ■ ■ ■ ■ ■ ");
 		move(21, 0);
-		printw("■ ■ ■ ■ 　　");
+		addstr("■ ■ ■ ■ 　　");
 
 
 		move(18, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		move(19, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		move(20, 108);
-		printw("■ ■ ■ ■ ■ ■ ");
+		addstr("■ ■ ■ ■ ■ ■ ");
 		move(21, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		refresh();
 		usleep(60000);
 
         move(18, 0);
-        printw("■ ■ ■ ■ ■ ■ ");
+        addstr("■ ■ ■ ■ ■ ■ ");
         move(19, 0);
-        printw("■ ■ 　　　　");
+        addstr("■ ■ 　　　　");
         move(20, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
         move(21, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
 
         move(18, 108);
-		printw("■ ■ ■ ■ ■ ■ ");
+		addstr("■ ■ ■ ■ ■ ■ ");
 		move(19, 108);
-		printw("　　　　■ ■ ");
+		addstr("　　　　■ ■ ");
 		move(20, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		move(21, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		refresh();
 		usleep(60000);
 
         move(18, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
         move(19, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
         move(20, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
         move(21, 0);
-        printw("■ ■ ■ ■ ■ ■ ");
+        addstr("■ ■ ■ ■ ■ ■ ");
 
         move(18, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		move(19, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		move(20, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		move(21, 108);
-		printw("■ ■ ■ ■ ■ ■ ");
+		addstr("■ ■ ■ ■ ■ ■ ");
 		refresh();
 		usleep(60000);
 
         move(18, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
         move(19, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
         move(20, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
         move(21, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
 
         move(18, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		move(19, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		move(20, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		move(21, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		refresh();
 		usleep(60000);
 
         move(18, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
         move(19, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
         move(20, 0);
-        printw("■ ■ 　　　　");
+        addstr("■ ■ 　　　　");
         move(21, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
 
         move(18, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		move(19, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		move(20, 108);
-		printw("　　　　■ ■ ");
+		addstr("　　　　■ ■ ");
 		move(21, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		refresh();
 		usleep(60000);
 
         move(18, 0);
-        printw("■ ■ 　　　　");
+        addstr("■ ■ 　　　　");
         move(19, 0);
-        printw("■ ■ ■ ■ ■ ■ ");
+        addstr("■ ■ ■ ■ ■ ■ ");
         move(20, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
         move(21, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
 
         move(18, 108);
-		printw("　　　　■ ■ ");
+		addstr("　　　　■ ■ ");
 		move(19, 108);
-		printw("■ ■ ■ ■ ■ ■ ");
+		addstr("■ ■ ■ ■ ■ ■ ");
 		move(20, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		move(21, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		refresh();
 		usleep(60000);
 
         move(18, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
         move(19, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
         move(20, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
         move(21, 0);
-        printw("■ ■ 　　　　");
+        addstr("■ ■ 　　　　");
 
         move(18, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		move(19, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		move(20, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		move(21, 108);
-		printw("　　　　■ ■ ");
+		addstr("　　　　■ ■ ");
 		refresh();
 		usleep(60000);
 		
 		move(18, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
         move(19, 0);
-        printw("■ ■ ■ ■ 　　");
+        addstr("■ ■ ■ ■ 　　");
         move(20, 0);
-        printw("■ ■ ■ ■ ■ 　");
+        addstr("■ ■ ■ ■ ■ 　");
         move(21, 0);
-        printw("■ ■ ■ 　　　");
+        addstr("■ ■ ■ 　　　");
 
                 move(18, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		move(19, 108);
-		printw("　　■ ■ ■ ■ ");
+		addstr("　　■ ■ ■ ■ ");
 		move(20, 108);
-		printw("　■ ■ ■ ■ ■ ");
+		addstr("　■ ■ ■ ■ ■ ");
 		move(21, 108);
-		printw("　　　■ ■ ■ ");
+		addstr("　　　■ ■ ■ ");
 		refresh();
 		usleep(60000);
 	}
@@ -495,7 +501,7 @@ void load_note(char *fname)
     strcat(path, ".txt");
     
     fp = fopen(path, "r");
-    
+	linecount = 0;
     if (!fp)
     {
         perror("fopen");
@@ -552,6 +558,10 @@ void game_screen()
     int i;
     
     clear();
+
+	gotoxy(65, 39);
+	addstr("Q키를 누르면 게임을 중단하고 곡 선택으로 돌아갑니다.");
+
     move(1, 20);
     addstr("┃        │        │        │        ┃\n");
     
@@ -617,15 +627,11 @@ void draw_notes(int** notes)
             ingame_note[0][j] = notes[i][j];
         
         if(ingame_note[34][0] == 1 || ingame_note[34][1] == 1 || ingame_note[34][2] == 1 || ingame_note[34][3]) {
-            gotoxy(60, 20);
-            printw("Miss    ");
-            total.miss++;
+            total.prev = 4;
+			total.miss++;
 			if(total.combo > total.maxcombo)
 				total.maxcombo = total.combo;
             total.combo = 0;
-            gotoxy(68, 27);
-			printw("%03d", total.combo);
-            refresh();
         }
         
         print_note(ingame_note);
@@ -639,37 +645,49 @@ void print_note(int note[][4])
 {
     for (int i=0; i<34; i++)
     {
-        move(i+1, 21);
-        if (note[i][0] == 1) printw("● ● ● ● ");
+		gotoxy(60, 24);
+		if(total.prev == 1)
+			addstr("Prefect!");
+		else if(total.prev == 2)
+			addstr("Good    ");
+		else if(total.prev == 3)
+			addstr("Bad     ");
+		else if(total.prev == 4)
+			addstr("Miss    ");
+		gotoxy(68, 27);
+        printw("%03d", total.combo);
+		
+		move(i+1, 21);
+        if (note[i][0] == 1) addstr(" ■■■■■ ");
 		else if(i == 31)
 			addstr("────────");
 		else if(i == 33)
 			addstr("━━━━━━━━");
-        else addstr("　　　　");
+        else addstr(" 　　　 ");
         
-        move(i+1, 30);
-        if (note[i][1] == 1) printw("● ● ● ● ");
+		move(i+1, 30);
+        if (note[i][1] == 1) addstr(" ■■■■■ ");
+		else if(i == 31)
+            addstr("────────");
+        else if(i == 33)
+			addstr("━━━━━━━━");
+        else addstr(" 　　　 ");
+        
+		move(i+1, 39);
+        if (note[i][2] == 1) addstr(" ■■■■■ ");
 		else if(i == 31)
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
-        else addstr("　　　　");
+        else addstr(" 　　　 ");
         
-        move(i+1, 39);
-        if (note[i][2] == 1) printw("● ● ● ● ");
+		move(i+1, 48);
+        if (note[i][3] == 1) addstr(" ■■■■■ ");
 		else if(i == 31)
             addstr("────────");
         else if(i == 33)
             addstr("━━━━━━━━");
-        else addstr("　　　　");
-        
-        move(i+1, 48);
-        if (note[i][3] == 1) printw("● ● ● ● ");
-		else if(i == 31)
-            addstr("────────");
-        else if(i == 33)
-            addstr("━━━━━━━━");
-        else addstr("　　　　"); 
+        else addstr(" 　　　 "); 
     }
 
     move(0,0);
@@ -722,37 +740,33 @@ void *on_input(void *a)
         else if (c == 'q' || c == 'Q')
             done = 1;
         
-        gotoxy(60, 20);
         switch(i-31) {
             case -2:
-                printw("Bad     ");
-                total.bad++;
+                total.prev = 3;
+				total.bad++;
                 total.combo++;
                 break;
             case -1:
-                printw("Good    ");
-                total.good++;
+                total.prev = 2;
+				total.good++;
                 total.combo++;
                 break;
             case 0:
-                printw("Perfect!");
-                total.perfect++;
+                total.prev = 1;
+				total.perfect++;
                 total.combo++;
                 break;
             case 1:
-                printw("Good    ");
-                total.good++;
+                total.prev = 2;
+				total.good++;
                 total.combo++;
                 break;
             case 2:
-                printw("Bad     ");
-                total.bad++;
+                total.prev = 3;
+				total.bad++;
                 total.combo++;
                 break;
         }
-        gotoxy(68, 27);
-		printw("%03d", total.combo);
-		refresh();
     }
 }
 
@@ -780,17 +794,42 @@ void resultScreen() {
     printw("PRESS  ENTER");
     gotoxy(45, 32);
     printw("==============================");
-    
-    refresh();
+	gotoxy(1, 1);
+	refresh();
+
+	total.perfect = 0;
+    total.good = 0;
+    total.bad = 0;
+    total.miss = 0;
+    total.maxcombo = 0;
+    total.combo = 0;
+    total.prev = 0;
+    thread_end_flag = 0;
 }
 
 void pauseScreen() {
+    
+	FMOD_Channel_Stop(g_Channel[0]);
+
+	free_note_arr();
+	total.perfect = 0;
+    total.good = 0;
+    total.bad = 0;
+    total.miss = 0;
+    total.maxcombo = 0;
+    total.combo = 0;
+	total.prev = 0;
+    thread_end_flag = 0;
+
 	gotoxy(25, 20);
 	printw("=====================================================================");
 	gotoxy(25, 21);
 	printw("         진행중인 게임을 중단하고 곡 선택 화면으로 돌아갑니다.       ");
 	gotoxy(25, 22);
 	printw("=====================================================================");
+	
+	gotoxy(1, 1);
+	
 	refresh();
 	done = 0;
 }
