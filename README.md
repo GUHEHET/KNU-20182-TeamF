@@ -8,6 +8,8 @@ Project UBUNJAM
 2015117601 권민철
 2015112242 심재욱
 
+
+==========================================================================
 실행이 불가능할 경우 fmodstudioapi11010linux.tar의 압축을 풀어
 
 cp ~/fmodstudioapi11010linux/api/fsbank/lib/x86_64/*so /usr/local/lib/
