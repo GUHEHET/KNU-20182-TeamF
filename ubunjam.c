@@ -76,7 +76,7 @@ int main()
 	crmode();
 
     songinit(0, "spread_clever", 2, 29190);
-    songinit(1, "Predawn", 6, 29190);
+    songinit(1, "Predawn", 5, 29140);
     songinit(2, "first_kiss", 4, 100580);
 
     while (!quit)
